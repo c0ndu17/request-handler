@@ -8,6 +8,9 @@ var gulp = require('gulp'),
   runSequence = require('run-sequence'),
   inlineResources = require('./tools/gulp/inline-resources');
 
+const dependencies = require('./package.json').dependencies;
+
+
 const rootFolder = path.join(__dirname);
 const srcFolder = path.join(rootFolder, 'src');
 const tmpFolder = path.join(rootFolder, '.tmp');
@@ -82,13 +85,7 @@ gulp.task('rollup:fesm', function () {
 
       // A list of IDs of modules that should remain external to the bundle
       // See "external" in https://rollupjs.org/#core-functionality
-      external: [
-        '@angular/core',
-        '@angular/common',
-        '@angular/http',
-        'angular2-jwt',
-        'ng2-interceptors',
-      ],
+      external: Object.keys(dependencies),
 
       // Format of generated bundle
       // See "format" in https://rollupjs.org/#core-functionality
@@ -118,13 +115,7 @@ gulp.task('rollup:umd', function () {
 
       // A list of IDs of modules that should remain external to the bundle
       // See "external" in https://rollupjs.org/#core-functionality
-      external: [
-        '@angular/core',
-        '@angular/common',
-        '@angular/http',
-        'angular2-jwt',
-        'ng2-interceptors',
-      ],
+      external: Object.keys(dependencies),
 
       // Format of generated bundle
       // See "format" in https://rollupjs.org/#core-functionality
