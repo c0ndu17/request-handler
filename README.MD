@@ -1,4 +1,6 @@
-# request-handler
+# equest-handler
+
+An Angular interceptor implementation library.
 
 ## Installation
 
