@@ -2,10 +2,9 @@ import { Injector, Injectable } from '@angular/core';
 import { Http, Headers} from '@angular/http';
 
 import { JwtHelper } from 'angular2-jwt';
-import { Interceptor, InterceptedRequest } from 'ng2-interceptors';
+import { Interceptor, InterceptedResponse, InterceptedRequest } from 'ng2-interceptors';
 
-// TODO: Uncomment when Observable type can be returned
-// import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs/Observable';
 
 /**
  * Models
@@ -15,8 +14,7 @@ import { AuthHeaders } from './auth-headers';
 @Injectable()
 export class RequestHandlerService implements Interceptor {
 
-  // TODO: Uncomment when endpoint is available
-  // private jwtHelper: JwtHelper = new JwtHelper();
+  private jwtHelper: JwtHelper = new JwtHelper();
 
   constructor(
     private injector: Injector,
@@ -39,20 +37,15 @@ export class RequestHandlerService implements Interceptor {
    *     interrupting it from the pipeline, and calling back 'interceptAfter'
    *     in backwards order of those interceptors that got called up to this point.
    */
-  public interceptBefore(request: InterceptedRequest): any {
+  public interceptBefore(request: InterceptedRequest): InterceptedRequest | Observable<InterceptedRequest> {
     /**
      * Check the request for the presence of a token:
      *  - If no token is present, continue the call as per usual.
      */
-    // TODO: Delete
-    if (/\/assets\//.test(request.url) || /\/tokens/.test(request.url) ) {
+    const access_token = request.options.headers.get('access_token');
+    if (!access_token || !this.jwtHelper.isTokenExpired(access_token)) {
       return request;
     }
-    // TODO: Uncomment when endpoint is available
-    // const access_token = request.options.headers.get('access_token');
-    // if (!access_token || !this.jwtHelper.isTokenExpired(access_token)) {
-    //   return request;
-    // }
 
     let currentCredentials = JSON.parse(localStorage.getItem('auth.headers'));
 
@@ -107,6 +100,11 @@ export class RequestHandlerService implements Interceptor {
       console.log(err);
     });
     return obs;
+  }
+
+  public interceptAfter(response: InterceptedResponse): InterceptedResponse {
+    debugger;
+    return response;
   }
 }
 
