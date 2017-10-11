@@ -1,15 +1,16 @@
-import { Injector, Injectable } from '@angular/core';
+/*
+ * Third party
+ */
+import { Inject, Injector, Injectable } from '@angular/core';
 import { Http, Headers} from '@angular/http';
-
 import { JwtHelper } from 'angular2-jwt';
 import { Interceptor, InterceptedResponse, InterceptedRequest } from 'ng2-interceptors';
-
 import { Observable } from 'rxjs/Observable';
 
 /**
  * Models
  */
-import { AuthHeaders } from './auth-headers';
+import { HANDLER_CONFIG, HandlerConfig } from './config/handler.config';
 
 @Injectable()
 export class RequestHandlerService implements Interceptor {
@@ -18,13 +19,19 @@ export class RequestHandlerService implements Interceptor {
 
   constructor(
     private injector: Injector,
+    @Inject(HANDLER_CONFIG) private handlerConfig: HandlerConfig
   ) {}
+
 
   /**
    * Injects http.
    */
   public get http(): Http {
     return this.injector.get(Http);
+  }
+
+  public get config(): HandlerConfig {
+    return this.handlerConfig;
   }
 
   /**
@@ -38,72 +45,86 @@ export class RequestHandlerService implements Interceptor {
    *     in backwards order of those interceptors that got called up to this point.
    */
   public interceptBefore(request: InterceptedRequest): InterceptedRequest | Observable<InterceptedRequest> {
+
     /**
      * Check the request for the presence of a token:
      *  - If no token is present, continue the call as per usual.
      */
-    const access_token = request.options.headers.get('access_token');
-    if (!access_token || !this.jwtHelper.isTokenExpired(access_token)) {
+    const accessToken = request.options.headers.get(this.config.clientAccessTokenName);
+    if (!accessToken || !this.jwtHelper.isTokenExpired(accessToken)) {
       return request;
     }
 
     let currentCredentials = JSON.parse(localStorage.getItem('auth.headers'));
 
-    /*
+    /**
      * If there is no access token in local storage,
      * Reassign currentCredentials those in session storage.
      */
-    if (currentCredentials && currentCredentials.access_token == null) {
+    if (!currentCredentials || (currentCredentials && currentCredentials[this.handlerConfig.clientRefreshTokenName] == null)) {
       currentCredentials = JSON.parse(sessionStorage.getItem('auth.headers'));
     }
 
+
+    /**
+     * Set the headers for the request.
+     * If the refresh token is not present, throw an error.
+     */
     const headers = new Headers();
-    if (currentCredentials) {
-      headers.append('X-Auth-Token', currentCredentials.access_token);
-      headers.append('X-Refresh-Token', currentCredentials.refresh_token);
+    headers.append(this.handlerConfig.serverAccessTokenName, accessToken);
+    if (currentCredentials && currentCredentials[this.handlerConfig.clientRefreshTokenName]) {
+      headers.append(this.handlerConfig.serverRefreshTokenName, currentCredentials[this.handlerConfig.clientRefreshTokenName]);
+    } else {
+      throw Error('No Refresh Token available');
     }
+
+    // ==================================
 
     /*
      * TODO: Modify to handle an HTTP resource
      */
-    const obs = this.http.post('http://localhost:3000/api/logins/tokens',
+    const obs = this.http.post(
+      this.handlerConfig.refreshUrl,
       {},
       {
         headers,
       }
-    ).map((data) => {
-      const responseData = data.json();
+    ).map((res) => {
       const localItem = JSON.parse(localStorage.getItem('auth.headers'));
-      const persist = localItem !== null && localItem.access_token !== null;
+      const persist = localItem !== null && localItem[this.handlerConfig.clientAccessTokenName] !== null;
+
+
+      console.log(res.headers.get(this.handlerConfig.serverAccessTokenName);
+      console.log(res.headers.get(this.handlerConfig.serverRefreshTokenName);
 
       // Populate the Auth Headers Object
-      const authHeaders: AuthHeaders = new AuthHeaders();
-      authHeaders.access_token = responseData.resource.access_token;
-      authHeaders.refresh_token = responseData.resource.refresh_token;
-      authHeaders.id = responseData.resource.id; // TODO: Check this is the new equivalent
+      console.log(res);
+
+      const authHeaders = {};
+      console.log(this.handlerConfig.serverAccessTokenName);
+      authHeaders[this.handlerConfig.clientAccessTokenName] = res.headers.get(this.handlerConfig.serverAccessTokenName);
+      console.log(this.handlerConfig.serverRefreshTokenName);
+      authHeaders[this.handlerConfig.clientRefreshTokenName] = res.headers.get(this.handlerConfig.serverRefreshTokenName);
 
       if (persist) {
         localStorage.setItem('auth.headers', JSON.stringify(authHeaders));
+        sessionStorage.removeItem('auth.headers');
       } else {
         sessionStorage.setItem('auth.headers', JSON.stringify(authHeaders));
+        localStorage.removeItem('auth.headers');
       }
 
-      request.options.headers.set('X-Auth-Token', authHeaders.access_token);
+      request.options.headers.set(this.handlerConfig.serverAccessTokenName, authHeaders[this.handlerConfig.clientAccessTokenName]);
 
       return request;
     });
 
-    obs.subscribe((data) => {
-      console.log(data);
-    }, (err) => {
-      console.log('Oh noooooo!!!! An error occured');
-      console.log(err);
-    });
     return obs;
   }
 
   public interceptAfter(response: InterceptedResponse): InterceptedResponse {
-    debugger;
+    console.log('INTERCEPTED RESPONSE');
+    console.log(response);
     return response;
   }
 }
