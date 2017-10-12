@@ -1,4 +1,4 @@
-import { HandlerConfig } from '../src/config/handler.config';
+import { HandlerConfig } from '../../config/handler.config';
 
 export const testConfig: HandlerConfig =  {
   clientAccessTokenName: 'accessToken',

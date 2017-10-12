@@ -5,10 +5,9 @@ import { InterceptorService} from 'ng2-interceptors';
 
 import { RequestHandlerService } from './request-handler.service';
 import { HANDLER_CONFIG, HandlerConfig } from './config/handler.config';
-import { fakeBackendProvider } from '../tools/fake-backend.provider';
+import { fakeBackendProvider } from './tests/provider/fake-backend';
 import { MockBackend } from '@angular/http/testing';
 import { BaseRequestOptions } from '@angular/http';
-
 
 export * from './request-handler.service';
 

@@ -10,7 +10,7 @@ import {
   expiredToken,
   refreshToken,
   validToken,
-} from '../tools/constants';
+} from '../src/tests/constants';
 
 
 describe('Service: Request Handler', () => {
