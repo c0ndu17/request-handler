@@ -1,6 +1,6 @@
-# equest-handler
+# Request-handler
 
-An Angular interceptor implementation library.
+An Angular interceptor implementation. Uses a two token process to keep a user authenticated.
 
 ## Installation
 
@@ -12,7 +12,7 @@ $ npm install request-handler --save
 
 ## Consuming your library
 
-Once you have published your library to npm, you can import your library in any Angular application by running:
+The implementation can be imported via the following method:
 
 ```bash
 $ npm install request-handler
@@ -36,8 +36,13 @@ import { RequestHandlerModule } from 'request-handler';
   imports: [
     BrowserModule,
 
-    // Specify your library as an import
-    LibraryModule
+    RequestHandlerModule.forRoot({
+      clientAccessTokenName: 'string',  // The key for the access token in storage.
+      clientRefreshTokenName: 'string', // The key for the refresh token in storage. 
+      serverAccessTokenName: 'string',  // The header value the access token is stored in
+      serverRefreshTokenName: 'string', // The header value the refresh token is stored in.
+      refreshUrl: 'string' // Endpoint to be hit to refresh the access token when it expires.
+    })
   ],
   providers: [],
   bootstrap: [AppComponent]
