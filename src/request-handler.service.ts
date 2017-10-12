@@ -30,6 +30,9 @@ export class RequestHandlerService implements Interceptor {
     return this.injector.get(Http);
   }
 
+  /**
+   * Config helper function for testing purposes.
+   */
   public get config(): HandlerConfig {
     return this.handlerConfig;
   }
@@ -71,7 +74,6 @@ export class RequestHandlerService implements Interceptor {
      * If the refresh token is not present, throw an error.
      */
     const headers = new Headers();
-    headers.append(this.handlerConfig.serverAccessTokenName, accessToken);
     if (currentCredentials && currentCredentials[this.handlerConfig.clientRefreshTokenName]) {
       headers.append(this.handlerConfig.serverRefreshTokenName, currentCredentials[this.handlerConfig.clientRefreshTokenName]);
     } else {
@@ -80,8 +82,8 @@ export class RequestHandlerService implements Interceptor {
 
     // ==================================
 
-    /*
-     * TODO: Modify to handle an HTTP resource
+    /**
+     *  Calls the refresh endpoint
      */
     const obs = this.http.post(
       this.handlerConfig.refreshUrl,
@@ -90,22 +92,21 @@ export class RequestHandlerService implements Interceptor {
         headers,
       }
     ).map((res) => {
+      /**
+       *  Handles the response from the endpoint
+       *  Returns the original request, which follows the refresh pipeline
+       */
       const localItem = JSON.parse(localStorage.getItem('auth.headers'));
       const persist = localItem !== null && localItem[this.handlerConfig.clientAccessTokenName] !== null;
 
-
-      console.log(res.headers.get(this.handlerConfig.serverAccessTokenName);
-      console.log(res.headers.get(this.handlerConfig.serverRefreshTokenName);
-
       // Populate the Auth Headers Object
-      console.log(res);
-
       const authHeaders = {};
-      console.log(this.handlerConfig.serverAccessTokenName);
       authHeaders[this.handlerConfig.clientAccessTokenName] = res.headers.get(this.handlerConfig.serverAccessTokenName);
-      console.log(this.handlerConfig.serverRefreshTokenName);
       authHeaders[this.handlerConfig.clientRefreshTokenName] = res.headers.get(this.handlerConfig.serverRefreshTokenName);
 
+      /**
+       * Save to persisiten storage if the current auth items are stored there.
+       */
       if (persist) {
         localStorage.setItem('auth.headers', JSON.stringify(authHeaders));
         sessionStorage.removeItem('auth.headers');
@@ -123,8 +124,6 @@ export class RequestHandlerService implements Interceptor {
   }
 
   public interceptAfter(response: InterceptedResponse): InterceptedResponse {
-    console.log('INTERCEPTED RESPONSE');
-    console.log(response);
     return response;
   }
 }

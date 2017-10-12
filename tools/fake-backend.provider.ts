@@ -1,5 +1,7 @@
 import { Http, Headers, BaseRequestOptions, Response, ResponseOptions, RequestMethod, XHRBackend, RequestOptions } from '@angular/http';
 import { MockBackend, MockConnection } from '@angular/http/testing';
+
+import { validToken } from './constants';
    
 export function fakeBackendFactory(backend: MockBackend, options: BaseRequestOptions, realBackend: XHRBackend) {
   backend.connections.subscribe((connection: MockConnection) => {
@@ -12,7 +14,7 @@ export function fakeBackendFactory(backend: MockBackend, options: BaseRequestOpt
       if (connection.request.url.startsWith('test://') && connection.request.method === RequestMethod.Post) {
 
         const headers = new Headers({
-          'X-Access-Token': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE1MDc3Mjc3NTcsImV4cCI6MTUwNzczMjUyMywiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG5ueSIsIlN1cm5hbWUiOiJSb2NrZXQiLCJFbWFpbCI6Impyb2NrZXRAZXhhbXBsZS5jb20iLCJSb2xlIjpbIk1hbmFnZXIiLCJQcm9qZWN0IEFkbWluaXN0cmF0b3IiXX0.XSlAo8SL-pLBK4eLCPLAGZ4Mz732x2yGAM4WW_PwmYg',
+          'X-Access-Token': validToken,
         });
         connection.mockRespond(
           new Response(

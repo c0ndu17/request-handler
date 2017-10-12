@@ -5,6 +5,13 @@ import { configureTests } from '../tools/tests.configure';
 import { RequestHandlerModule } from '../src/index';
 import { InterceptedResponse, InterceptedRequest } from 'ng2-interceptors';
 
+import {
+  testConfig,
+  expiredToken,
+  refreshToken,
+  validToken,
+} from '../tools/constants';
+
 
 describe('Service: Request Handler', () => {
   let requestHandlerService: RequestHandlerService;
@@ -13,13 +20,7 @@ describe('Service: Request Handler', () => {
     const configure = (testBed: TestBed) => {
       testBed.configureTestingModule({
         imports: [
-          RequestHandlerModule.forTesting({
-            clientAccessTokenName: 'accessToken',
-            clientRefreshTokenName: 'refreshToken',
-            serverAccessTokenName: 'X-Access-Token',
-            serverRefreshTokenName: 'X-Refresh-Token',
-            refreshUrl: 'test://localhost:3000',
-          })
+          RequestHandlerModule.forTesting(testConfig)
         ],
       });
     };
@@ -31,13 +32,7 @@ describe('Service: Request Handler', () => {
   });
 
   it('is configuration valid', () => {
-    expect(requestHandlerService.config).toEqual({
-      clientAccessTokenName: 'accessToken',
-      clientRefreshTokenName: 'refreshToken',
-      serverAccessTokenName: 'X-Access-Token',
-      serverRefreshTokenName: 'X-Refresh-Token',
-      refreshUrl: 'test://localhost:3000',
-    });
+    expect(requestHandlerService.config).toEqual(testConfig);
   });
 
   it('Passes on request without token present', () => {
@@ -75,8 +70,9 @@ describe('Service: Request Handler', () => {
 
   it('Throws an error if there is no refresh token present ', () => {
     let headers = new Headers();
-    headers.append(requestHandlerService.config.clientAccessTokenName,
-      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE1MDc3Mjc3NTcsImV4cCI6MTUwNzcyODA5OSwiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG5ueSIsIlN1cm5hbWUiOiJSb2NrZXQiLCJFbWFpbCI6Impyb2NrZXRAZXhhbXBsZS5jb20iLCJSb2xlIjpbIk1hbmFnZXIiLCJQcm9qZWN0IEFkbWluaXN0cmF0b3IiXX0.s8mD1ntB2Fjjwv5uZINfVAF4Z381UUr8ZAG7LSakGWM'
+    headers.append(
+      requestHandlerService.config.clientAccessTokenName,
+      expiredToken
     );
 
     let options = new RequestOptions({
@@ -96,15 +92,13 @@ describe('Service: Request Handler', () => {
 
   it('Calls refresher endpoint ', (done) => {
     const storageObject = {};
-    storageObject[requestHandlerService.config.clientRefreshTokenName] = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE1MDc3Mjc3NTcsImV4cCI6MTUzOTI2NTUwNSwiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG5ueSIsIlN1cm5hbWUiOiJSb2NrZXQiLCJFbWFpbCI6Impyb2NrZXRAZXhhbXBsZS5jb20iLCJSb2xlIjpbIk1hbmFnZXIiLCJQcm9qZWN0IEFkbWluaXN0cmF0b3IiXX0.7LMcIstqSJutGWfXa0G4Nt4w8dGJt-1BItCZDXrGnEU';
+    storageObject[requestHandlerService.config.clientRefreshTokenName] = refreshToken;
 
 
     localStorage.setItem('auth.headers', JSON.stringify(storageObject));
 
     let headers = new Headers();
-    headers.append(requestHandlerService.config.clientAccessTokenName,
-      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE1MDc3Mjc3NTcsImV4cCI6MTUwNzcyODA5OSwiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG5ueSIsIlN1cm5hbWUiOiJSb2NrZXQiLCJFbWFpbCI6Impyb2NrZXRAZXhhbXBsZS5jb20iLCJSb2xlIjpbIk1hbmFnZXIiLCJQcm9qZWN0IEFkbWluaXN0cmF0b3IiXX0.s8mD1ntB2Fjjwv5uZINfVAF4Z381UUr8ZAG7LSakGWM'
-    );
+    headers.append(requestHandlerService.config.clientAccessTokenName, expiredToken);
 
     let options = new RequestOptions({
       headers,
@@ -118,9 +112,8 @@ describe('Service: Request Handler', () => {
     };
 
     requestHandlerService.interceptBefore(interceptedRequest).subscribe((res) => {
-      expect(res.headers.get(requestHandlerService.config.serverAccessTokenName)).toBe(
-        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE1MDc3Mjc3NTcsImV4cCI6MTUwNzczMjUyMywiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG5ueSIsIlN1cm5hbWUiOiJSb2NrZXQiLCJFbWFpbCI6Impyb2NrZXRAZXhhbXBsZS5jb20iLCJSb2xlIjpbIk1hbmFnZXIiLCJQcm9qZWN0IEFkbWluaXN0cmF0b3IiXX0.XSlAo8SL-pLBK4eLCPLAGZ4Mz732x2yGAM4WW_PwmYg'
-      );
+      const authHeaders = JSON.parse(localStorage.getItem('auth.headers'));
+      expect(authHeaders[requestHandlerService.config.clientAccessTokenName]).toBe(validToken);
       done();
     });
 
