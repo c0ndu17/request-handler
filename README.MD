@@ -2,6 +2,9 @@
 
 An Angular interceptor implementation. Uses a two token process to keep a user authenticated.
 
+Created for an internal project, it's generic enough to work with your general refresher token implementation.
+
+
 ## Installation
 
 To install this library, run:
