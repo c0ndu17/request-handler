@@ -44,7 +44,7 @@ import { RequestHandlerModule } from 'request-handler';
       clientRefreshTokenName: 'string', // The key for the refresh token in storage. 
       serverAccessTokenName: 'string',  // The header value the access token is stored in
       serverRefreshTokenName: 'string', // The header value the refresh token is stored in.
-      refreshUrl: 'string' // Endpoint to be hit to refresh the access token when it expires.
+      refreshUrl: 'string' // POST Endpoint to be hit to refresh the access token when it expires.
     })
   ],
   providers: [],
